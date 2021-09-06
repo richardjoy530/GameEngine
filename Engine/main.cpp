@@ -3,6 +3,9 @@
 #endif 
 
 #include <windows.h>
+#include "Graphics.h"
+
+Graphics* graphics;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -36,36 +39,47 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 		NULL        // Additional application data
 	);
 
-	if (hwnd == NULL)
+	if (hwnd == NULL)	return 0;
+
+	graphics = new Graphics();
+	if (!graphics->Init(hwnd))
 	{
-		return 0;
+		delete graphics;
+		return -1;
 	}
 
 	ShowWindow(hwnd, nCmdShow);
 
 	// Run the message loop.
-
 	MSG msg;
 	msg.message = WM_NULL;
 	while (msg.message != WM_QUIT)
 	{
 		// If there is a message, then handle the message
-		if (PeekMessage(&msg, hwnd, NULL, NULL, PM_REMOVE))
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			DispatchMessage(&msg);
 		}
 		else
 		{
 			// Update
-
+			graphics->BeginDraw();
+			graphics->ClearScreen(0, 0, 0);
+			graphics->EndDraw();
 			// Render
 		}
 	}
-
+	delete graphics;
 	return 0;
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	if (uMsg == WM_DESTROY)
+	{
+		PostQuitMessage(0);
+		return 0;
+	}
+	
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
