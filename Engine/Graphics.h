@@ -15,5 +15,5 @@ public:
 	void BeginDraw() { renderTarget->BeginDraw(); }
 	void EndDraw() { renderTarget->EndDraw(); }
 
-	void ClearScreen(float r, float g, float b) { renderTarget->Clear(D2D1::ColorF(r,g,b)); }
+	void ClearScreen(float r, float g, float b) { renderTarget->Clear(D2D1::ColorF(r, g, b)); }
 };

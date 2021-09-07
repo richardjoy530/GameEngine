@@ -5,7 +5,7 @@
 #include <windows.h>
 #include "Graphics.h"
 
-Graphics* graphics;
+Graphics* graphics; // The Almighty gfx
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -24,22 +24,36 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
 	// Create the window.
 
-	HWND hwnd = CreateWindowEx(
-		0,				// Optional window styles.
-		CLASS_NAME,                     // Window class
-		L"Car Game",					// Window text
-		WS_OVERLAPPEDWINDOW,            // Window style
+	//HWND hwnd = CreateWindowEx(
+	//	0,				// Optional window styles.
+	//	CLASS_NAME,     // Window class
+	//	L"Car Game",	// Window text
+	//	NULL,			// Window style
 
-		// Size and position
-		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+	//	// Size and position
+	//	CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 
-		NULL,       // Parent window    
-		NULL,       // Menu
-		hInstance,  // Instance handle
-		NULL        // Additional application data
+	//	NULL,       // Parent window    
+	//	NULL,       // Menu
+	//	hInstance,  // Instance handle
+	//	NULL        // Additional application data
+	//);
+
+	HWND hwnd = CreateWindow(
+		CLASS_NAME,
+		0,
+		NULL,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, // x, y, width, height - TODO: Make it adaptive fullscreen
+		NULL,
+		NULL,
+		hInstance,
+		NULL
 	);
 
+
 	if (hwnd == NULL)	return 0;
+
+	SetWindowLong(hwnd, GWL_STYLE, 0); // Remove all window styles, basically removes the border and close|min|max buttons .. i hate those
 
 	graphics = new Graphics();
 	if (!graphics->Init(hwnd))
@@ -69,7 +83,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			// Render
 		}
 	}
-	delete graphics;
+	delete graphics; // explictly delete graphics since its allocated in heap memory
 	return 0;
 }
 
@@ -80,6 +94,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		PostQuitMessage(0);
 		return 0;
 	}
-	
+
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }

@@ -6,7 +6,6 @@ Graphics::Graphics()
 {
 	factory = NULL;
 	renderTarget = NULL;
-
 }
 
 Graphics::~Graphics()
