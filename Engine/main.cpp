@@ -1,9 +1,6 @@
 #ifndef UNICODE
 #define UNICODE
 #endif 
-#define GET_X_LPARAM(lp)						((int)(short)LOWORD(lp))
-#define GET_Y_LPARAM(lp)						((int)(short)HIWORD(lp))
-#define IS_KEY_PRESSED(key)						(1 << 15) & GetAsyncKeyState(key)
 
 #include "Graphics.h"
 #include "Player.h"
@@ -14,15 +11,10 @@ FLOAT speed = 10;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-void GetKeyUpdates();
-
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
 
 #pragma region WindowSetup
-
-
-
 	// Register the window class.
 	const wchar_t CLASS_NAME[] = L"Window Class";
 
@@ -58,8 +50,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	}
 
 	ShowWindow(hwnd, nCmdShow);
-	RECT rcWind;
-	GetClientRect(hwnd, &rcWind);
 #pragma endregion
 
 	player.Init(hwnd);
@@ -71,13 +61,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	{
 		// If there is a message, then handle the message
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) { DispatchMessage(&msg); }
-		GetKeyUpdates();
-		// Update
+
+		player.Update();
+
 		graphics->BeginDraw();
 		graphics->ClearScreen(0, 0, 0);
-		player.Update(graphics);
+		player.Render(graphics);
 		graphics->EndDraw();
-		// Render
 	}
 	delete graphics; // explictly delete graphics since its allocated in heap memory
 	return 0;
@@ -90,36 +80,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		PostQuitMessage(0);
 		return 0;
 	}
-	else if (uMsg == WM_MOUSEMOVE)
-	{
-		player.xAim = GET_X_LPARAM(lParam);
-		player.yAim = GET_Y_LPARAM(lParam);
-	}
-	else if (uMsg == WM_KEYUP)
-	{
-		if (wParam == VK_UP || wParam == 0x57) { player.ySpeed = 0; }
-		if (wParam == VK_DOWN || wParam == 0x53) { player.ySpeed = 0; }
-		if (wParam == VK_RIGHT || wParam == 0x44) { player.xSpeed = 0; }
-		if (wParam == VK_LEFT || wParam == 0x41) { player.xSpeed = 0; }
-	}
+	else { player.OnWinEvent(uMsg, wParam, lParam); }
 
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
-}
-
-void GetKeyUpdates() {
-
-	player.ySpeed = 0;
-	player.xSpeed = 0;
-
-	// W => 0x57
-	if (IS_KEY_PRESSED(VK_UP) || IS_KEY_PRESSED(0x57)) { player.ySpeed += -speed; }
-
-	// S => 0x53
-	if (IS_KEY_PRESSED(VK_DOWN) || IS_KEY_PRESSED(0x53)) { player.ySpeed += speed; }
-
-	// A => 0x41
-	if (IS_KEY_PRESSED(VK_LEFT) || IS_KEY_PRESSED(0x41)) { player.xSpeed += -speed; }
-
-	// D => 0x44
-	if (IS_KEY_PRESSED(VK_RIGHT) || IS_KEY_PRESSED(0x44)) { player.xSpeed += speed; }
 }

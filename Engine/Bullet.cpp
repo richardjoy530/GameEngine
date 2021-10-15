@@ -1,5 +1,7 @@
 #include "Bullet.h"
 
+Bullet::Bullet() {}
+
 void Bullet::Render(Graphics* graphics)
 {
 	if (isAlive)
@@ -14,4 +16,13 @@ void Bullet::Update()
 	{
 
 	}
+}
+
+void Bullet::operator=(Bullet src)
+{
+	x = src.x;
+	y = src.y;
+	speed = src.speed;
+	isAlive = src.isAlive;
+	color = src.color;
 }
