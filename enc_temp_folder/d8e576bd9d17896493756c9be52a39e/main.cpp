@@ -68,28 +68,28 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 		}
 		else
 		{
-			// Update
-			graphics->BeginDraw();
-			graphics->ClearScreen(0, 0, 0);
-			if (x > rcWind.right)
-			{
-				x = 0;
-			}if (x < 0)
-			{
-				x = rcWind.right;
-			}if (y < 0)
-			{
-				y = rcWind.bottom;
-			}if (y > rcWind.bottom)
-			{
-				y = 0;
-			}
-			x += xDisplacement;
-			y += yDisplacement;
-			graphics->DrawEllipse(x, y);
-			graphics->EndDraw();
-			// Render
+		// Update
+		graphics->BeginDraw();
+		graphics->ClearScreen(0, 0, 0);
+		if (x > rcWind.right)
+		{
+			x = 0;
+		}if (x < 0)
+		{
+			x = rcWind.right;
+		}if (y < 0)
+		{
+			y = rcWind.bottom;
+		}if (y > rcWind.bottom)
+		{
+			y = 0;
 		}
+		x += xDisplacement;
+		y += yDisplacement;
+		graphics->DrawEllipse(x, y);
+		graphics->EndDraw();
+		// Render
+	}
 	}
 	delete graphics; // explictly delete graphics since its allocated in heap memory
 	return 0;
