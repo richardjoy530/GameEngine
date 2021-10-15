@@ -26,13 +26,18 @@ bool Graphics::Init(HWND hwnd)
 		D2D1::HwndRenderTargetProperties(hwnd, D2D1::SizeU(rect.right, rect.bottom)),
 		&renderTarget);
 
-	renderTarget->CreateSolidColorBrush(color, &ellipseCircleBrush);
+	renderTarget->CreateSolidColorBrush(color, &brush);
 
 	return true;
 }
 
-void Graphics::DrawEllipse(FLOAT x, FLOAT y)
+void Graphics::DrawEllipse(FLOAT x, FLOAT y, int r)
 {
-	ellipse = D2D1::Ellipse(D2D1::Point2F(x, y), 10, 10);
-	renderTarget->FillEllipse(ellipse, ellipseCircleBrush);
+	ellipse = D2D1::Ellipse(D2D1::Point2F(x, y), r, r);
+	renderTarget->FillEllipse(ellipse, brush);
+}
+
+void Graphics::DrawLine(FLOAT x1, FLOAT y1, FLOAT x2, FLOAT y2, FLOAT width)
+{
+	renderTarget->DrawLine(D2D1::Point2F(x1, y1), D2D1::Point2F(x2, y2), brush, 0.5f);
 }
