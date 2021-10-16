@@ -18,11 +18,6 @@ Player::Player()
 void Player::Init(HWND hwnd)
 {
 	GetClientRect(hwnd, &playableArea);
-	bullets[0] = Bullet(position.x, position.y);
-	bullets[1] = Bullet(position.x, position.y);
-	bullets[2] = Bullet(position.x, position.y);
-	bullets[3] = Bullet(position.x, position.y);
-	bullets[4] = Bullet(position.x, position.y);
 }
 
 void Player::Render(Graphics* graphics)
@@ -31,20 +26,39 @@ void Player::Render(Graphics* graphics)
 	graphics->DrawEllipse(aimPosition.x, aimPosition.y, 2, color);
 	graphics->DrawLine(position.x, position.y, aimPosition.x, aimPosition.y, 2, color);
 
-	bullets[0].Render(graphics);
+	for (INT index = 0; index < 5; index++) { bullets[index].Render(graphics); }
 }
 
 void Player::Fire()
 {
-	bullets[0].isAlive = TRUE;
-	bullets[0].aimPostion = aimPosition;
-	bullets[0].firePosition = position;
-	bullets[0].angle = atan2f((aimPosition.y - position.y), (aimPosition.x - position.x));
-	bullets[0].position = position;
-	bullets[0].color = D2D1::ColorF((FLOAT)(rand() % 100) / (FLOAT)100, (FLOAT)(rand() % 100) / (FLOAT)100, (FLOAT)(rand() % 100) / (FLOAT)100);
+	Bullet bullet;
+	bullet.playableArea = playableArea;
+	bullet.isAlive = TRUE;
+	bullet.aimPostion = aimPosition;
+	bullet.firePosition = position;
+	bullet.angle = atan2f((aimPosition.y - position.y), (aimPosition.x - position.x));
+	bullet.position = position;
+	bullet.color = D2D1::ColorF((FLOAT)(rand() % 100) / (FLOAT)100, (FLOAT)(rand() % 100) / (FLOAT)100, (FLOAT)(rand() % 100) / (FLOAT)100);
+	GetNextBullet(bullet);
 }
 
-bool Player::GetNextBullet(Bullet* bullet) { return false; }
+void Player::ResetBullets()
+{
+	for (INT index = 0; index < 5; index++) { bullets[index].isAlive = FALSE; }
+}
+
+bool Player::GetNextBullet(Bullet bullet)
+{
+	for (INT index = 0; index < 5; index++)
+	{
+		if (!bullets[index].isAlive)
+		{
+			bullets[index] = bullet;
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
 
 void Player::OnWinEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -56,6 +70,10 @@ void Player::OnWinEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 	else if ((msg == WM_KEYDOWN && wParam == VK_SPACE) || msg == WM_LBUTTONDOWN)
 	{
 		Fire();
+	}
+	else if (msg == WM_KEYDOWN && wParam == 0x52)
+	{
+		ResetBullets();
 	}
 	else if (msg == WM_KEYUP)
 	{
@@ -94,8 +112,9 @@ void Player::Update()
 	if (position.y > playableArea.bottom) { position.y = 0; }
 	if (position.x < 0) { position.x = playableArea.right; }
 	if (position.y < 0) { position.y = playableArea.bottom; }
+
 	position.x += xSpeed;
 	position.y += ySpeed;
 
-	bullets[0].Update();
+	for (INT index = 0; index < 5; index++) { bullets[index].Update(); }
 }

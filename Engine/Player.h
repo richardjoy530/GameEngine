@@ -42,7 +42,9 @@ public:
 
 	void OnWinEvent(UINT msg, WPARAM wParam, LPARAM lParam);
 	
-	bool GetNextBullet(Bullet* bullet);
+	bool GetNextBullet(Bullet bullet);
 	
 	void Fire();
+
+	void ResetBullets();
 };
