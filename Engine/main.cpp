@@ -7,7 +7,6 @@
 
 Graphics* graphics; // The Almighty gfx
 Player player;
-FLOAT speed = 10;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 

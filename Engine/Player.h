@@ -22,8 +22,8 @@ private:
 	const D2D1_COLOR_F color = D2D1::ColorF(0.0f, 1.0f, 1.0f);
 
 public:
-	FLOAT x, y;				// Postion of the player
-	FLOAT xAim, yAim;		// Position to fire (to get the aiming direciton)
+	D2D1_POINT_2F position;		// Postion of the player
+	D2D1_POINT_2F aimPosition;	// Position to fire (to get the aiming direciton)
 	FLOAT xSpeed, ySpeed;
 	FLOAT health;
 	FLOAT score;

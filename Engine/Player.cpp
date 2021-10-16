@@ -3,11 +3,12 @@
 #define GET_Y_LPARAM(lp)						((int)(short)HIWORD(lp))
 
 #include "Player.h"
+#include <math.h>
 
 Player::Player()
 {
-	x = y = 200;
-	xAim = yAim = 200;
+	position.x = position.y = 200;
+	aimPosition.x = aimPosition.y = 200;
 	health = 100;
 	score = 0;
 	xSpeed = 0;
@@ -17,21 +18,31 @@ Player::Player()
 void Player::Init(HWND hwnd)
 {
 	GetClientRect(hwnd, &playableArea);
-	bullets[0] = Bullet(x, y);
-	bullets[1] = Bullet(x, y);
-	bullets[2] = Bullet(x, y);
-	bullets[3] = Bullet(x, y);
-	bullets[4] = Bullet(x, y);
+	bullets[0] = Bullet(position.x, position.y);
+	bullets[1] = Bullet(position.x, position.y);
+	bullets[2] = Bullet(position.x, position.y);
+	bullets[3] = Bullet(position.x, position.y);
+	bullets[4] = Bullet(position.x, position.y);
 }
 
 void Player::Render(Graphics* graphics)
 {
-	graphics->DrawEllipse(x, y, 10, color);
-	graphics->DrawEllipse(xAim, yAim, 2, color);
-	graphics->DrawLine(x, y, xAim, yAim, 2, color);
+	graphics->DrawEllipse(position.x, position.y, 10, color);
+	graphics->DrawEllipse(aimPosition.x, aimPosition.y, 2, color);
+	graphics->DrawLine(position.x, position.y, aimPosition.x, aimPosition.y, 2, color);
+
+	bullets[0].Render(graphics);
 }
 
-void Player::Fire() {}
+void Player::Fire()
+{
+	bullets[0].isAlive = TRUE;
+	bullets[0].aimPostion = aimPosition;
+	bullets[0].firePosition = position;
+	bullets[0].angle = atan2f((aimPosition.y - position.y), (aimPosition.x - position.x));
+	bullets[0].position = position;
+	bullets[0].color = D2D1::ColorF((FLOAT)(rand() % 100) / (FLOAT)100, (FLOAT)(rand() % 100) / (FLOAT)100, (FLOAT)(rand() % 100) / (FLOAT)100);
+}
 
 bool Player::GetNextBullet(Bullet* bullet) { return false; }
 
@@ -39,8 +50,8 @@ void Player::OnWinEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	if (msg == WM_MOUSEMOVE)
 	{
-		xAim = GET_X_LPARAM(lParam);
-		yAim = GET_Y_LPARAM(lParam);
+		aimPosition.x = GET_X_LPARAM(lParam);
+		aimPosition.y = GET_Y_LPARAM(lParam);
 	}
 	else if ((msg == WM_KEYDOWN && wParam == VK_SPACE) || msg == WM_LBUTTONDOWN)
 	{
@@ -79,10 +90,12 @@ void Player::GetKeyUpdates()
 void Player::Update()
 {
 	GetKeyUpdates();
-	if (x > playableArea.right) { x = 0; }
-	if (y > playableArea.bottom) { y = 0; }
-	if (x < 0) { x = playableArea.right; }
-	if (y < 0) { y = playableArea.bottom; }
-	x += xSpeed;
-	y += ySpeed;
+	if (position.x > playableArea.right) { position.x = 0; }
+	if (position.y > playableArea.bottom) { position.y = 0; }
+	if (position.x < 0) { position.x = playableArea.right; }
+	if (position.y < 0) { position.y = playableArea.bottom; }
+	position.x += xSpeed;
+	position.y += ySpeed;
+
+	bullets[0].Update();
 }
