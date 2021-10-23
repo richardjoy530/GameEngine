@@ -24,7 +24,7 @@ void Player::Render(Graphics* graphics)
 {
 	graphics->DrawEllipse(position.x, position.y, 10, color);
 	graphics->DrawEllipse(aimPosition.x, aimPosition.y, 2, color);
-	graphics->DrawLine(position.x, position.y, aimPosition.x, aimPosition.y, 2, color);
+	//graphics->DrawLine(position.x, position.y, aimPosition.x, aimPosition.y, 2, color);
 
 	for (INT index = 0; index < 5; index++) { bullets[index].Render(graphics); }
 }
@@ -67,7 +67,7 @@ void Player::OnWinEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 		aimPosition.x = GET_X_LPARAM(lParam);
 		aimPosition.y = GET_Y_LPARAM(lParam);
 	}
-	else if ((msg == WM_KEYDOWN && wParam == VK_SPACE) || msg == WM_LBUTTONDOWN)
+	else if (/*(msg == WM_KEYDOWN && wParam == VK_SPACE) ||*/ msg == WM_LBUTTONDOWN)
 	{
 		Fire();
 	}
@@ -77,6 +77,7 @@ void Player::OnWinEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 	else if (msg == WM_KEYUP)
 	{
+		if (wParam == VK_SPACE) { Fire(); }
 		if (wParam == VK_UP || wParam == 0x57) { ySpeed = 0; }
 		if (wParam == VK_DOWN || wParam == 0x53) { ySpeed = 0; }
 		if (wParam == VK_RIGHT || wParam == 0x44) { xSpeed = 0; }
@@ -93,16 +94,23 @@ void Player::GetKeyUpdates()
 	xSpeed = 0;
 
 	// W => 0x57
-	if (IS_KEY_PRESSED(VK_UP) || IS_KEY_PRESSED(0x57)) { ySpeed += -speed; }
+	if (IS_KEY_PRESSED(VK_UP) || IS_KEY_PRESSED(0x57)) { ySpeed -= speed; }
 
 	// S => 0x53
 	if (IS_KEY_PRESSED(VK_DOWN) || IS_KEY_PRESSED(0x53)) { ySpeed += speed; }
 
 	// A => 0x41
-	if (IS_KEY_PRESSED(VK_LEFT) || IS_KEY_PRESSED(0x41)) { xSpeed += -speed; }
+	if (IS_KEY_PRESSED(VK_LEFT) || IS_KEY_PRESSED(0x41)) { xSpeed -= speed; }
 
 	// D => 0x44
 	if (IS_KEY_PRESSED(VK_RIGHT) || IS_KEY_PRESSED(0x44)) { xSpeed += speed; }
+
+	if (abs(xSpeed) + abs(ySpeed) != 0)
+	{
+		FLOAT magnitude = sqrt(((xSpeed * xSpeed) + (ySpeed * ySpeed)));
+		xSpeed = speed * (xSpeed / magnitude);
+		ySpeed = speed * (ySpeed / magnitude);
+	}
 }
 
 void Player::Update()
@@ -118,3 +126,5 @@ void Player::Update()
 
 	for (INT index = 0; index < 5; index++) { bullets[index].Update(); }
 }
+
+void Player::OnHit() {}

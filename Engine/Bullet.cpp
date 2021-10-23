@@ -13,15 +13,18 @@ void Bullet::Update()
 {
 	if (isAlive)
 	{
-		if (position.x > playableArea.right) { position.x = 0; }
-		if (position.y > playableArea.bottom) { position.y = 0; }
-		if (position.x < 0) { position.x = playableArea.right; }
-		if (position.y < 0) { position.y = playableArea.bottom; }
+
+		if (position.x > playableArea.right) { isAlive = FALSE; }
+		if (position.y > playableArea.bottom) { isAlive = FALSE; }
+		if (position.x < 0) { isAlive = FALSE; }
+		if (position.y < 0) { isAlive = FALSE; }
 
 		position.x += cos(angle) * speed;
 		position.y += sin(angle) * speed;
 	}
 }
+
+void Bullet::OnHit() {}
 
 //void Bullet::operator=(Bullet src)
 //{

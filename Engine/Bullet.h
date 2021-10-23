@@ -1,10 +1,9 @@
 #pragma once
 #include "Interfaces.h"
-#include "Direction.h"
 
 class Bullet : public IGameObject
 {
-	FLOAT speed = 10;
+	FLOAT speed = 30;
 
 public:
 	BOOL isAlive = FALSE;
@@ -17,6 +16,7 @@ public:
 
 	void Render(Graphics* graphics);
 	void Update();
+	void OnHit();
 
 	//void operator = (Bullet src);
 };

@@ -1,9 +1,6 @@
 #pragma once
 
 #include <windows.h>
-#include "Graphics.h"
-#include "Direction.h"
-#include "Interfaces.h"
 #include "Bullet.h"
 #include <functional>
 
@@ -24,7 +21,7 @@ private:
 public:
 	D2D1_POINT_2F position;		// Postion of the player
 	D2D1_POINT_2F aimPosition;	// Position to fire (to get the aiming direciton)
-	FLOAT xSpeed, ySpeed;
+	FLOAT xSpeed = 0, ySpeed = 0;
 	FLOAT health;
 	FLOAT score;
 	RECT playableArea = {};
@@ -41,10 +38,12 @@ public:
 	void GetKeyUpdates();
 
 	void OnWinEvent(UINT msg, WPARAM wParam, LPARAM lParam);
-	
+
 	bool GetNextBullet(Bullet bullet);
-	
+
 	void Fire();
 
 	void ResetBullets();
+
+	void OnHit();
 };
