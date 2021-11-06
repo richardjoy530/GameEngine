@@ -1,5 +1,7 @@
 #include "Target.h"
 
+Target::Target() { Init(); }
+
 void Target::Init()
 {
 	rect = { 200, 200, 220, 220 };

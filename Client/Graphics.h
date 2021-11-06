@@ -13,6 +13,7 @@ class Graphics
 	ID2D1SolidColorBrush* brush = NULL;
 
 public:
+
 	Graphics();
 	~Graphics();
 

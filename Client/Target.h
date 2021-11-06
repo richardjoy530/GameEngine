@@ -10,6 +10,8 @@ public:
 	FLOAT health = 100;
 	D2D1_COLOR_F color = D2D1::ColorF(1.0f, 0.0f, 0.0f);
 
+	Target();
+
 	void Init();
 
 	void Render(Graphics* graphics);

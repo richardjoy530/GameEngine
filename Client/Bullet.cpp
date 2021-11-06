@@ -13,7 +13,6 @@ void Bullet::Update()
 {
 	if (isAlive)
 	{
-
 		if (position.x > playableArea.right) { isAlive = FALSE; }
 		if (position.y > playableArea.bottom) { isAlive = FALSE; }
 		if (position.x < 0) { isAlive = FALSE; }
@@ -25,12 +24,3 @@ void Bullet::Update()
 }
 
 void Bullet::OnHit() {}
-
-//void Bullet::operator=(Bullet src)
-//{
-//	position.x = src.position.x;
-//	position.y = src.position.y;
-//	speed = src.speed;
-//	isAlive = src.isAlive;
-//	color = src.color;
-//}

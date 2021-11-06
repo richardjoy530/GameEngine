@@ -1,6 +1,7 @@
 #pragma once
-
+ 
 #include "Graphics.h"
+#include "Player.h"
 
 Graphics::Graphics()
 {
@@ -38,12 +39,11 @@ bool Graphics::Init(HWND hwnd)
 		writeFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		writeFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 	}
-
-	RECT rect;
-	GetClientRect(hwnd, &rect);
+	RECT playableArea;
+	GetClientRect(hwnd, &playableArea);
 	factory->CreateHwndRenderTarget(
 		D2D1::RenderTargetProperties(),
-		D2D1::HwndRenderTargetProperties(hwnd, D2D1::SizeU(rect.right, rect.bottom)),
+		D2D1::HwndRenderTargetProperties(hwnd, D2D1::SizeU(playableArea.right, playableArea.bottom)),
 		&renderTarget);
 
 	renderTarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f), &brush);

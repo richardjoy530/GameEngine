@@ -2,29 +2,22 @@
 
 #include <windows.h>
 #include "Bullet.h"
-#include <functional>
 
 class Player : public IGameObject
 {
-	// --------- TODO ---------
-	// Position - DONE
-	// Shooter direction - DONE
-	// Brush player and bullet - DONE
-	// Update() - DONE
-	// Health
-	// Score
-	// --------- TODO ---------
 private:
-	FLOAT speed = 10;
+	FLOAT speed_val = 10;
 	const D2D1_COLOR_F color = D2D1::ColorF(0.0f, 1.0f, 1.0f);
-
-public:
-	D2D1_POINT_2F position;		// Postion of the player
-	D2D1_POINT_2F aimPosition;	// Position to fire (to get the aiming direciton)
-	FLOAT xSpeed = 0, ySpeed = 0;
+	D2D1_POINT_2F pos_aim;
 	FLOAT health;
 	FLOAT score;
-	RECT playableArea = {};
+	D2D1_POINT_2F speed_dir;
+	BOOL trigger_released = TRUE;
+	RECT playableArea;
+
+public:
+
+	D2D1_POINT_2F position;
 	Bullet bullets[5];
 
 	Player();

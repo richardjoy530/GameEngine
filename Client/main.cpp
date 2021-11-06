@@ -2,7 +2,6 @@
 #define UNICODE
 #endif 
 
-#include "Graphics.h"
 #include "Player.h"
 #include "Target.h"
 #include <time.h>
@@ -60,13 +59,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	ShowWindow(hwnd, nCmdShow);
 #pragma endregion
 
-	player.Init(hwnd);
-	target.Init();
-
 	// Run the message loop.
 	MSG msg;
 	msg.message = WM_NULL;
 	std::wstring ms = L"0";
+
+	player.Init(hwnd);
 	while (msg.message != WM_QUIT)
 	{
 		m_StartTime = std::chrono::system_clock::now();
