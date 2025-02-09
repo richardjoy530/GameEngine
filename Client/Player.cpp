@@ -3,6 +3,8 @@
 #define GET_Y_LPARAM(lp)						((int)(short)HIWORD(lp))
 
 #include "Player.h"
+
+#include <iostream>
 #include <math.h>
 #include <time.h>
 
@@ -91,11 +93,17 @@ void Player::OnWinEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 		if (wParam == VK_DOWN || wParam == 0x53) { speed_dir.y = 0; }
 		if (wParam == VK_RIGHT || wParam == 0x44) { speed_dir.x = 0; }
 		if (wParam == VK_LEFT || wParam == 0x41) { speed_dir.x = 0; }
+
+	    // Exit game if 'Q' or 'ESC' is pressed
+		if (wParam == 0x51 || wParam == 0x1B)
+		{
+		    PostQuitMessage(0);
+		}
 	}
 }
 
 // KeyDown is detected by GetAsyncKeyState() because the KeyDown event
-// fired by windows has a delay for continuious presses where the key is not released
+// fired by windows has a delay for continuous presses where the key is not released
 // TODO : Make a toggling logic in Player::OnWinEvent()
 void Player::GetKeyUpdates()
 {
@@ -116,7 +124,7 @@ void Player::GetKeyUpdates()
 
 	if (abs(speed_dir.x) + abs(speed_dir.y) != 0)
 	{
-		FLOAT magnitude = sqrtf(((speed_dir.x * speed_dir.x) + (speed_dir.y * speed_dir.y)));
+        const FLOAT magnitude = sqrtf(speed_dir.x * speed_dir.x + speed_dir.y * speed_dir.y);
 		speed_dir.x = speed_val * (speed_dir.x / magnitude);
 		speed_dir.y = speed_val * (speed_dir.y / magnitude);
 	}

@@ -1,12 +1,13 @@
 #ifndef UNICODE
 #define UNICODE
-#endif 
+#endif
 
 #include "Player.h"
 #include "Target.h"
 #include <time.h>
 #include <string>
 #include <chrono>
+#include <iostream>
 
 
 Graphics* graphics; // The Almighty gfx
@@ -36,8 +37,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	HWND hwnd = CreateWindow(
 		CLASS_NAME,
 		0,
-		NULL,
-		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, // x, y, width, height - TODO: Make it adaptive fullscreen
+		WS_MAXIMIZE, // Fullscreen
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, // x, y, width, height
 		NULL,
 		NULL,
 		hInstance,
@@ -46,7 +47,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
 	if (hwnd == NULL)	return 1;
 
-	SetWindowLong(hwnd, GWL_STYLE, 0); // Remove all window styles, basically removes the border and close|min|max buttons .. i hate those
+	SetWindowLong(hwnd, GWL_STYLE, 0); // Remove all window styles, basically removes the border and close|min|max buttons ... I hate those
 
 	graphics = new Graphics();
 
@@ -57,6 +58,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	}
 
 	ShowWindow(hwnd, nCmdShow);
+    ShowCursor(NULL);
 #pragma endregion
 
 	// Run the message loop.
@@ -69,22 +71,26 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	{
 		m_StartTime = std::chrono::system_clock::now();
 		// If there is a message, then handle the message
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) { DispatchMessage(&msg); }
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+		    DispatchMessage(&msg);
+		}
 		player.Update();
-		//target.Update();
+		// target.Update();
 
 		graphics->BeginDraw();
 		graphics->ClearScreen(0, 0, 0);
-		D2D1_RECT_F rect = { 0, 0, 50, 50 };
-		graphics->WriteText(ms, rect);
-		//target.Render(graphics);
+		D2D1_RECT_F rect = { 0, 0, 100, 50 };
+		graphics->WriteText(L"FPS: "+ms, rect);
+		// target.Render(graphics);
 		player.Render(graphics);
 		graphics->EndDraw();
 		m_EndTime = std::chrono::system_clock::now();
 
-		ms = std::to_wstring(std::chrono::duration_cast<std::chrono::milliseconds>(m_EndTime - m_StartTime).count());
+		ms = std::to_wstring(1000/std::chrono::duration_cast<std::chrono::milliseconds>(m_EndTime - m_StartTime).count());
 	}
-	delete graphics; // explictly delete graphics since its allocated in heap memory
+	delete graphics; // explicitly delete graphics since it's allocated in heap memory
+    std::cout << "exit 0";
 	return 0;
 }
 
