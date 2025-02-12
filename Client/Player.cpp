@@ -1,4 +1,3 @@
-#define IS_KEY_PRESSED(key)						(1 << 15) & GetAsyncKeyState(key)
 #define GET_X_LPARAM(lp)						((int)(short)LOWORD(lp))
 #define GET_Y_LPARAM(lp)						((int)(short)HIWORD(lp))
 
@@ -13,8 +12,6 @@ Player::Player()
 	pos_aim.x = pos_aim.y = 0;
 	health = 100;
 	score = 0;
-	speed_dir.x = 0;
-	speed_dir.y = 0;
 }
 
 void Player::Init(HWND hwnd)
@@ -24,6 +21,8 @@ void Player::Init(HWND hwnd)
 	srand(time(nullptr));
 	position.x = rand() % playableArea.right;
 	position.y = rand() % playableArea.bottom;
+    prev_position.x = position.x;
+    prev_position.y = position.y;
 }
 
 void Player::Render(Graphics* graphics)
@@ -89,10 +88,10 @@ void Player::OnWinEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 	else if (msg == WM_KEYUP)
 	{
 		if (wParam == VK_SPACE) { trigger_released = TRUE; }
-		if (wParam == VK_UP || wParam == 0x57) { speed_dir.y = 0; }
-		if (wParam == VK_DOWN || wParam == 0x53) { speed_dir.y = 0; }
-		if (wParam == VK_RIGHT || wParam == 0x44) { speed_dir.x = 0; }
-		if (wParam == VK_LEFT || wParam == 0x41) { speed_dir.x = 0; }
+		if (wParam == VK_UP || wParam == 0x57) { direction.up = false; }
+		if (wParam == VK_DOWN || wParam == 0x53) { direction.down = false; }
+		if (wParam == VK_RIGHT || wParam == 0x44) { direction.right = false; }
+		if (wParam == VK_LEFT || wParam == 0x41) { direction.left = false; }
 
 	    // Exit game if 'Q' or 'ESC' is pressed
 		if (wParam == 0x51 || wParam == 0x1B)
@@ -100,47 +99,59 @@ void Player::OnWinEvent(UINT msg, WPARAM wParam, LPARAM lParam)
 		    PostQuitMessage(0);
 		}
 	}
-}
-
-// KeyDown is detected by GetAsyncKeyState() because the KeyDown event
-// fired by windows has a delay for continuous presses where the key is not released
-// TODO : Make a toggling logic in Player::OnWinEvent()
-void Player::GetKeyUpdates()
-{
-	speed_dir.x = 0;
-	speed_dir.y = 0;
-
-	// W => 0x57
-	if (IS_KEY_PRESSED(VK_UP) || IS_KEY_PRESSED(0x57)) { speed_dir.y -= speed_val; }
-
-	// S => 0x53
-	if (IS_KEY_PRESSED(VK_DOWN) || IS_KEY_PRESSED(0x53)) { speed_dir.y += speed_val; }
-
-	// A => 0x41
-	if (IS_KEY_PRESSED(VK_LEFT) || IS_KEY_PRESSED(0x41)) { speed_dir.x -= speed_val; }
-
-	// D => 0x44
-	if (IS_KEY_PRESSED(VK_RIGHT) || IS_KEY_PRESSED(0x44)) { speed_dir.x += speed_val; }
-
-	if (abs(speed_dir.x) + abs(speed_dir.y) != 0)
-	{
-        const FLOAT magnitude = sqrtf(speed_dir.x * speed_dir.x + speed_dir.y * speed_dir.y);
-		speed_dir.x = speed_val * (speed_dir.x / magnitude);
-		speed_dir.y = speed_val * (speed_dir.y / magnitude);
-	}
+    else if (msg == WM_KEYDOWN)
+    {
+        if (wParam == VK_UP || wParam == 0x57) { direction.up = true; }
+        if (wParam == VK_DOWN || wParam == 0x53) { direction.down = true; }
+        if (wParam == VK_RIGHT || wParam == 0x44) { direction.right = true; }
+        if (wParam == VK_LEFT || wParam == 0x41) { direction.left = true; }
+    }
 }
 
 void Player::Update()
 {
-	GetKeyUpdates();
-	if (position.x > playableArea.right) { position.x = playableArea.right - speed_dir.x; }
-	if (position.y > playableArea.bottom) { position.y = playableArea.bottom - speed_dir.y; }
-	if (position.x < 0) { position.x = -speed_dir.x; }
-	if (position.y < 0) { position.y = -speed_dir.y; }
+    if (direction.right == true && direction.left == false)
+    {
+        prev_position.x = position.x;
 
-	position.x += speed_dir.x;
-	position.y += speed_dir.y;
+        if (frame < 100)
+        {
+            position.x += accleration * frame++;
+        }
+        else
+        {
+            position.x += accleration * frame;
+        }
+    }
+    else if (direction.left == true && direction.right == false)
+    {
+        prev_position.x = position.x;
 
+        if (frame < 100)
+        {
+            position.x -= accleration * frame++;
+        }
+        else
+        {
+            position.x -= accleration * frame;
+        }
+    }
+    else if (direction.right == false && direction.left == false)
+    {
+        if (frame > 0)
+        {
+            if (prev_position.x < position.x)
+            {
+                position.x += accleration * frame--;
+                frame--;
+            }
+            if (prev_position.x > position.x)
+            {
+                position.x -= accleration * frame--;
+                frame--;
+            }
+        }
+    }
 	for (INT index = 0; index < 5; index++) { bullets[index].Update(); }
 }
 
