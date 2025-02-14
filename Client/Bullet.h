@@ -1,7 +1,7 @@
 #pragma once
 #include "Interfaces.h"
 
-class Bullet : public IGameObject
+class Bullet : public GameObject
 {
 	FLOAT speed = 30;
 
@@ -16,7 +16,4 @@ public:
 
 	void Render(Graphics* graphics);
 	void Update();
-	void OnHit();
-
-	//void operator = (Bullet src);
 };

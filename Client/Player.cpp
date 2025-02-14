@@ -3,156 +3,161 @@
 
 #include "Player.h"
 
+#include <ctime>
 #include <iostream>
-#include <math.h>
-#include <time.h>
 
 Player::Player()
 {
-	pos_aim.x = pos_aim.y = 0;
-	health = 100;
-	score = 0;
+	pos_aim_.x = pos_aim_.y = 0;
 }
 
-void Player::Init(HWND hwnd)
+void Player::Init(const HWND handle)
 {
-	GetClientRect(hwnd, &playableArea);
+	GetClientRect(handle, &playable_area_);
 
 	srand(time(nullptr));
-	position.x = rand() % playableArea.right;
-	position.y = rand() % playableArea.bottom;
+	position.x = rand() % playable_area_.right;
+	position.y = rand() % playable_area_.bottom;
     prev_position.x = position.x;
     prev_position.y = position.y;
 }
 
 void Player::Render(Graphics* graphics)
 {
-	graphics->DrawEllipse(position.x, position.y, 10, color);
-	graphics->DrawEllipse(pos_aim.x, pos_aim.y, 2, color);
+	graphics->DrawEllipse(position.x, position.y, 10, color_);
+	graphics->DrawEllipse(pos_aim_.x, pos_aim_.y, 2, color_);
 
-	for (INT index = 0; index < 5; index++) { bullets[index].Render(graphics); }
+	for (auto& bullet : bullets)
+	{
+	    bullet.Render(graphics);
+	}
 }
 
 void Player::Fire()
 {
-	trigger_released = FALSE;
+	trigger_released_ = FALSE;
 	Bullet bullet;
 	bullet.isAlive = TRUE;
-	bullet.aimPostion = pos_aim;
+	bullet.aimPostion = pos_aim_;
 	bullet.firePosition = position;
-	bullet.angle = atan2f((pos_aim.y - position.y), (pos_aim.x - position.x));
+	bullet.angle = atan2f((pos_aim_.y - position.y), (pos_aim_.x - position.x));
 	bullet.position = position;
-	bullet.playableArea = playableArea;
+	bullet.playableArea = playable_area_;
 	bullet.color = D2D1::ColorF(1.0f, 1.0f, 0.0f);
 	GetNextBullet(bullet);
 }
 
 void Player::ResetBullets()
 {
-	for (INT index = 0; index < 5; index++) { bullets[index].isAlive = FALSE; }
+	for (auto& bullet : bullets)
+	{
+	    bullet.isAlive = FALSE;
+	}
 }
 
-bool Player::GetNextBullet(Bullet bullet)
+bool Player::GetNextBullet(const Bullet& bullet)
 {
-	for (INT index = 0; index < 5; index++)
-	{
-		if (!bullets[index].isAlive)
+	for (auto& index : bullets)
+    {
+		if (!index.isAlive)
 		{
-			bullets[index] = bullet;
+            index = bullet;
 			return TRUE;
 		}
 	}
 	return FALSE;
 }
 
-void Player::OnWinEvent(UINT msg, WPARAM wParam, LPARAM lParam)
+void Player::OnWinEvent(const UINT msg, const WPARAM w_param, const LPARAM l_param)
 {
 	if (msg == WM_MOUSEMOVE)
 	{
-		pos_aim.x = GET_X_LPARAM(lParam);
-		pos_aim.y = GET_Y_LPARAM(lParam);
+		pos_aim_.x = GET_X_LPARAM(l_param);
+		pos_aim_.y = GET_Y_LPARAM(l_param);
 	}
-	else if (msg == WM_KEYDOWN && wParam == VK_SPACE && trigger_released)
+	else if (msg == WM_KEYDOWN && w_param == VK_SPACE && trigger_released_)
 	{
 		Fire();
 	}
 	else if (msg == WM_LBUTTONDOWN)
 	{
 		Fire();
-		trigger_released = TRUE;
+		trigger_released_ = TRUE;
 	}
-	else if (msg == WM_KEYDOWN && wParam == 0x52)	// R => 0x52
+	else if (msg == WM_KEYDOWN && w_param == 0x52)	// R => 0x52
 	{
 		ResetBullets();
 	}
 	else if (msg == WM_KEYUP)
 	{
-		if (wParam == VK_SPACE) { trigger_released = TRUE; }
-		if (wParam == VK_UP || wParam == 0x57) { direction.up = false; }
-		if (wParam == VK_DOWN || wParam == 0x53) { direction.down = false; }
-		if (wParam == VK_RIGHT || wParam == 0x44) { direction.right = false; }
-		if (wParam == VK_LEFT || wParam == 0x41) { direction.left = false; }
+		if (w_param == VK_SPACE) { trigger_released_ = TRUE; }
+		if (w_param == VK_UP || w_param == 0x57) { direction_.up = false; }
+		if (w_param == VK_DOWN || w_param == 0x53) { direction_.down = false; }
+		if (w_param == VK_RIGHT || w_param == 0x44) { direction_.right = false; }
+		if (w_param == VK_LEFT || w_param == 0x41) { direction_.left = false; }
 
 	    // Exit game if 'Q' or 'ESC' is pressed
-		if (wParam == 0x51 || wParam == 0x1B)
+		if (w_param == 0x51 || w_param == 0x1B)
 		{
 		    PostQuitMessage(0);
 		}
 	}
     else if (msg == WM_KEYDOWN)
     {
-        if (wParam == VK_UP || wParam == 0x57) { direction.up = true; }
-        if (wParam == VK_DOWN || wParam == 0x53) { direction.down = true; }
-        if (wParam == VK_RIGHT || wParam == 0x44) { direction.right = true; }
-        if (wParam == VK_LEFT || wParam == 0x41) { direction.left = true; }
+        if (w_param == VK_UP || w_param == 0x57) { direction_.up = true; }
+        if (w_param == VK_DOWN || w_param == 0x53) { direction_.down = true; }
+        if (w_param == VK_RIGHT || w_param == 0x44) { direction_.right = true; }
+        if (w_param == VK_LEFT || w_param == 0x41) { direction_.left = true; }
     }
 }
 
 void Player::Update()
 {
-    if (direction.right == true && direction.left == false)
+    if (direction_.right == true && direction_.left == false)
     {
         prev_position.x = position.x;
 
-        if (frame < 100)
+        if (frame_ < 100)
         {
-            position.x += accleration * frame++;
+            position.x += acceleration_ * static_cast<float>(frame_++);
         }
         else
         {
-            position.x += accleration * frame;
+            position.x += acceleration_ * static_cast<float>(frame_);
         }
     }
-    else if (direction.left == true && direction.right == false)
+    else if (direction_.left == true && direction_.right == false)
     {
         prev_position.x = position.x;
 
-        if (frame < 100)
+        if (frame_ < 100)
         {
-            position.x -= accleration * frame++;
+            position.x -= acceleration_ * static_cast<float>(frame_++);
         }
         else
         {
-            position.x -= accleration * frame;
+            position.x -= acceleration_ * static_cast<float>(frame_);
         }
     }
-    else if (direction.right == false && direction.left == false)
+    else if (direction_.right == false && direction_.left == false)
     {
-        if (frame > 0)
+        if (frame_ > 0)
         {
             if (prev_position.x < position.x)
             {
-                position.x += accleration * frame--;
-                frame--;
+                position.x += acceleration_ * static_cast<float>(frame_--);
+                frame_--;
             }
             if (prev_position.x > position.x)
             {
-                position.x -= accleration * frame--;
-                frame--;
+                position.x -= acceleration_ * static_cast<float>(frame_--);
+                frame_--;
             }
         }
     }
-	for (INT index = 0; index < 5; index++) { bullets[index].Update(); }
-}
 
-void Player::OnHit() {}
+	for (auto& bullet : bullets)
+	{
+	    bullet.Update();
+	}
+}

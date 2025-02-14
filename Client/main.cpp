@@ -3,8 +3,7 @@
 #endif
 
 #include "Player.h"
-#include "Target.h"
-#include <time.h>
+#include <ctime>
 #include <string>
 #include <chrono>
 #include <iostream>
@@ -12,31 +11,30 @@
 
 Graphics* graphics; // The Almighty gfx
 Player player;
-Target target;
 
-std::chrono::time_point<std::chrono::system_clock> m_StartTime;
-std::chrono::time_point<std::chrono::system_clock> m_EndTime;
+std::chrono::time_point<std::chrono::system_clock> m_start_time;
+std::chrono::time_point<std::chrono::system_clock> m_end_time;
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK window_proc(HWND handle, UINT u_msg, WPARAM w_param, LPARAM l_param);
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+int WINAPI wWinMain(const HINSTANCE hInstance, HINSTANCE, PWSTR, const int nShowCmd)
 {
 
 #pragma region WindowSetup
 	// Register the window class.
-	const wchar_t CLASS_NAME[] = L"Window Class";
+    constexpr wchar_t class_name[] = L"Window Class";
 
 	WNDCLASS wc = { };
 
-	wc.lpfnWndProc = WindowProc;
+	wc.lpfnWndProc = window_proc;
 	wc.hInstance = hInstance;
-	wc.lpszClassName = CLASS_NAME;
+	wc.lpszClassName = class_name;
 
 	RegisterClass(&wc);
 
-	HWND hwnd = CreateWindow(
-		CLASS_NAME,
-		0,
+    const HWND handle = CreateWindow(
+		class_name,
+		nullptr,
 		WS_MAXIMIZE, // Fullscreen
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, // x, y, width, height
 		NULL,
@@ -45,19 +43,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 		NULL
 	);
 
-	if (hwnd == NULL)	return 1;
+	if (handle == nullptr)	return 1;
 
-	SetWindowLong(hwnd, GWL_STYLE, 0); // Remove all window styles, basically removes the border and close|min|max buttons ... I hate those
+	SetWindowLong(handle, GWL_STYLE, 0); // Remove all window styles, basically removes the border and close|min|max buttons ... I hate those
 
 	graphics = new Graphics();
 
-	if (!graphics->Init(hwnd))
+	if (!graphics->Init(handle))
 	{
 		delete graphics;
 		return 1;
 	}
 
-	ShowWindow(hwnd, nCmdShow);
+	ShowWindow(handle, nShowCmd);
     ShowCursor(NULL);
 #pragma endregion
 
@@ -66,42 +64,40 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	msg.message = WM_NULL;
 	std::wstring ms = L"0";
 
-	player.Init(hwnd);
+	player.Init(handle);
 	while (msg.message != WM_QUIT)
 	{
-		m_StartTime = std::chrono::system_clock::now();
+		m_start_time = std::chrono::system_clock::now();
 		// If there is a message, then handle the message
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 		{
 		    DispatchMessage(&msg);
 		}
 		player.Update();
-		// target.Update();
 
 		graphics->BeginDraw();
 		graphics->ClearScreen(0, 0, 0);
 		D2D1_RECT_F rect = { 0, 0, 100, 50 };
 		graphics->WriteText(L"FPS: "+ms, rect);
-		// target.Render(graphics);
 		player.Render(graphics);
 		graphics->EndDraw();
-		m_EndTime = std::chrono::system_clock::now();
+		m_end_time = std::chrono::system_clock::now();
 
-		ms = std::to_wstring(1000/std::chrono::duration_cast<std::chrono::milliseconds>(m_EndTime - m_StartTime).count());
+		ms = std::to_wstring(1000/std::chrono::duration_cast<std::chrono::milliseconds>(m_end_time - m_start_time).count());
 	}
 	delete graphics; // explicitly delete graphics since it's allocated in heap memory
     std::cout << "exit 0";
 	return 0;
 }
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK window_proc(const HWND handle, const UINT u_msg, const WPARAM w_param, const LPARAM l_param)
 {
-	if (uMsg == WM_DESTROY)
+	if (u_msg == WM_DESTROY)
 	{
 		PostQuitMessage(0);
 		return 0;
 	}
-	else { player.OnWinEvent(uMsg, wParam, lParam); }
+	else { player.OnWinEvent(u_msg, w_param, l_param); }
 
-	return DefWindowProc(hwnd, uMsg, wParam, lParam);
+	return DefWindowProc(handle, u_msg, w_param, l_param);
 }

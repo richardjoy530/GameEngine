@@ -22,5 +22,3 @@ void Bullet::Update()
 		position.y += sin(angle) * speed;
 	}
 }
-
-void Bullet::OnHit() {}
