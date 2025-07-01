@@ -6,226 +6,179 @@
 #include <ctime>
 #include <iostream>
 
+#include "Utilities/Force2D.h"
+
+constexpr int DIR_UP = 0;
+constexpr int DIR_RIGHT = 1;
+constexpr int DIR_DOWN = 2;
+constexpr int DIR_LEFT = 3;
+constexpr int FIRE_RECOIL = 4;
+
 Player::Player()
 {
-	pos_aim_.x = pos_aim_.y = 0;
+    friction_coef = 0.1f;
+    terminal_velocity = 0.5;
+    rotation_deg = 0;
+    trigger_released_ = true;
+
+    color_ = D2D1::ColorF(0.0f, 1.0f, 1.0f);
+    playable_area_ = {};
+    
+    float mag = 1.f, att = .0f, gai = .05f, rel = .0f;
+    forces[DIR_UP] = Force2D{{0, -1}, mag, att, gai, rel};
+    forces[DIR_RIGHT] = Force2D({1, 0}, mag, att, gai, rel);
+    forces[DIR_DOWN] = Force2D({0, 1}, mag, att, gai, rel);
+    forces[DIR_LEFT] = Force2D({-1, 0}, mag, att, gai, rel);
 }
 
 void Player::Init(const HWND handle)
 {
-	GetClientRect(handle, &playable_area_);
+    GetClientRect(handle, &playable_area_);
+    srand(time(nullptr));
 
-	srand(time(nullptr));
-	// position.x = rand() % playable_area_.right;
-	position.x = playable_area_.right/2;
-	// position.y = rand() % playable_area_.bottom;
-	position.y = playable_area_.bottom/2;
-    prev_position.x = position.x;
-    prev_position.y = position.y;
-    frame_.x = 0;
-    frame_.y = 0;
+    // position_vec = {rand() % playable_area_.right, rand() % playable_area_.bottom};
+    position = Vector2D(playable_area_.right / 2, playable_area_.bottom / 2);
+    velocity = Vector2D();
+    net_force = Vector2D();
+    aim_pos_vec = Vector2D();
+    rotation_deg = 0;
 }
 
 void Player::Render(Graphics* graphics)
 {
-	graphics->DrawEllipse(position.x, position.y, 10, color_);
-	graphics->DrawEllipse(pos_aim_.x, pos_aim_.y, 2, color_);
+    graphics->DrawEllipse(position.x, position.y, 10, color_);
+    graphics->DrawEllipse(aim_pos_vec.x, aim_pos_vec.y, 2, color_);
 
-	for (auto& bullet : bullets)
-	{
-	    bullet.Render(graphics);
-	}
+    for (auto& bullet : bullets)
+    {
+        bullet.Render(graphics);
+    }
 }
 
 void Player::Fire()
 {
-	trigger_released_ = FALSE;
-	Bullet bullet;
-	bullet.isAlive = TRUE;
-	bullet.aimPostion = pos_aim_;
-	bullet.firePosition = position;
-	bullet.angle = atan2f(pos_aim_.y - position.y, pos_aim_.x - position.x);
-	bullet.position = position;
-	bullet.playableArea = playable_area_;
-	bullet.color = D2D1::ColorF(1.0f, 1.0f, 0.0f);
-	GetNextBullet(bullet);
+    auto recoil_direction = (position - aim_pos_vec).normalize();
+    forces[FIRE_RECOIL] = Force2D(recoil_direction, .1f, .0f, .0f, .0f, 4);
+    forces[FIRE_RECOIL].activate();
+    trigger_released_ = FALSE;
+    Bullet bullet = Bullet(playable_area_, position, aim_pos_vec);
+    GetNextBullet(bullet);
 }
 
 void Player::ResetBullets()
 {
-	for (auto& bullet : bullets)
-	{
-	    bullet.isAlive = FALSE;
-	}
+    for (auto& bullet : bullets)
+    {
+        bullet.isAlive = FALSE; 
+    }
 }
 
 bool Player::GetNextBullet(const Bullet& bullet)
 {
-	for (auto& index : bullets)
+    for (auto& index : bullets)
     {
-		if (!index.isAlive)
-		{
+        if (!index.isAlive)
+        {
             index = bullet;
-			return TRUE;
-		}
-	}
-	return FALSE;
+            return TRUE;
+        }
+    }
+    return FALSE;
 }
 
 void Player::OnWinEvent(const UINT msg, const WPARAM w_param, const LPARAM l_param)
 {
-	if (msg == WM_MOUSEMOVE)
-	{
-		pos_aim_.x = GET_X_LPARAM(l_param);
-		pos_aim_.y = GET_Y_LPARAM(l_param);
-	}
-	else if (msg == WM_KEYDOWN && w_param == VK_SPACE && trigger_released_)
-	{
-		Fire();
-	}
-	else if (msg == WM_LBUTTONDOWN)
-	{
-		Fire();
-		trigger_released_ = TRUE;
-	}
-	else if (msg == WM_KEYDOWN && w_param == 0x52)	// R => 0x52
-	{
-		ResetBullets();
-	}
-	else if (msg == WM_KEYUP)
-	{
-		if (w_param == VK_SPACE) { trigger_released_ = TRUE; }
-		if (w_param == VK_UP || w_param == 0x57) { key_direction_.y = 0; }
-		if (w_param == VK_DOWN || w_param == 0x53) { key_direction_.y = 0; }
-		if (w_param == VK_RIGHT || w_param == 0x44) { key_direction_.x = 0; }
-		if (w_param == VK_LEFT || w_param == 0x41) { key_direction_.x = 0; }
-
-	    // Exit game if 'Q' or 'ESC' is pressed
-		if (w_param == 0x51 || w_param == 0x1B)
-		{
-		    PostQuitMessage(0);
-		}
-	}
-    else if (msg == WM_KEYDOWN)
+    switch (msg) // is if cases better to improve multiple events ?
     {
-        if (w_param == VK_UP || w_param == 0x57) { key_direction_.y = -1; }
-        if (w_param == VK_DOWN || w_param == 0x53) { key_direction_.y = 1; }
-        if (w_param == VK_RIGHT || w_param == 0x44) { key_direction_.x = 1; }
-        if (w_param == VK_LEFT || w_param == 0x41) { key_direction_.x = -1; }
+    case WM_MOUSEMOVE:
+        aim_pos_vec = Vector2D(GET_X_LPARAM(l_param), GET_Y_LPARAM(l_param));
+        break;
+    case WM_LBUTTONDOWN:
+        if (trigger_released_) { Fire(); }
+        break;
+    case WM_LBUTTONUP:
+        trigger_released_ = true;
+        forces[FIRE_RECOIL].deactivate();
+        break;
+    case WM_KEYDOWN:
+        if (w_param == VK_SPACE && trigger_released_) { Fire(); }
+        else if (w_param == 0x52) { ResetBullets(); } // R => 0x52
+        else
+        {
+            if (w_param == VK_UP || w_param == 0x57) { forces[DIR_UP].activate(); }
+            if (w_param == VK_DOWN || w_param == 0x53) { forces[DIR_DOWN].activate(); }
+            if (w_param == VK_RIGHT || w_param == 0x44) { forces[DIR_RIGHT].activate(); }
+            if (w_param == VK_LEFT || w_param == 0x41) { forces[DIR_LEFT].activate(); }
+        }
+        break;
+    case WM_KEYUP:
+        if (w_param == VK_SPACE)
+        {
+            trigger_released_ = TRUE;
+            forces[FIRE_RECOIL].deactivate();
+        }
+        if (w_param == VK_UP || w_param == 0x57) { forces[DIR_UP].deactivate(); }
+        if (w_param == VK_DOWN || w_param == 0x53) { forces[DIR_DOWN].deactivate(); }
+        if (w_param == VK_RIGHT || w_param == 0x44) { forces[DIR_RIGHT].deactivate(); }
+        if (w_param == VK_LEFT || w_param == 0x41) { forces[DIR_LEFT].deactivate(); }
+        // keyups trigger a complete reset of THAT component of the vector: this is not realistic
+        // consider adding a force_decay that decreases power if still in motion instead of stopping.
+
+        // Exit game if 'Q' or 'ESC' is pressed
+        if (w_param == 0x51 || w_param == 0x1B) { PostQuitMessage(0); }
+        break;
+    default:;
+    }
+}
+
+void Player::EnforceBoundaries()
+{
+    if (position.x < playable_area_.left)
+    {
+        position.x += 2 * (playable_area_.left - position.x);
+        velocity.x *= -1;
+    }
+    else if (position.x > playable_area_.right)
+    {
+        position.x -= 2 * (position.x - playable_area_.right);
+        velocity.x *= -1;
+    }
+    if (position.y < playable_area_.top)
+    {
+        position.y += 2 * (playable_area_.top - position.y);
+        velocity.y *= -1;
+    }
+    else if (position.y > playable_area_.bottom)
+    {
+        position.y -= 2 * (position.y - playable_area_.bottom);
+        velocity.y *= -1;
     }
 }
 
 void Player::Update()
 {
-    if (frame_.x > 0 && key_direction_.x == 0)
-    {
-        frame_.x--;
-    }
-    else if (frame_.x <= 50 && key_direction_.x != 0)
-    {
-        frame_.x++;
-    }
+    UpdateVectors();
+    velocity *= 1 - friction_coef;
+    velocity += net_force;
+    position += velocity;
+    EnforceBoundaries();
 
-    if (frame_.y > 0 && key_direction_.y == 0)
-    {
-        frame_.y--;
-    }
-    else if (frame_.y <= 50 && key_direction_.y != 0)
-    {
-        frame_.y++;
-    }
-
-    CalculateAcceleration();
-    CalculateDeceleration();
-    CalculateVelocity();
-    CalculatePosition();
-
-	for (auto& bullet : bullets)
-	{
-	    bullet.Update();
-	}
+    for (auto& bullet : bullets) { bullet.Update(); }
 }
 
-void Player::CalculateAcceleration()
-{
-    if (key_direction_.x == 0)
-    {
-        deceleration_.x = -acceleration_.x;
-    }
-
-    if (key_direction_.y == 0)
-    {
-        deceleration_.y = -acceleration_.y;
-    }
-
-    const auto angle = atan2f(key_direction_.y, key_direction_.x);
-    acceleration_.x = cosf(angle) * acceleration_magnitude;
-    acceleration_.y = sinf(angle) * acceleration_magnitude;
-}
-
-void Player::CalculateDeceleration()
-{
-    if (key_direction_.x == 0)
-    {
-        acceleration_.x = -deceleration_.x;
-    }
-
-    if (key_direction_.y == 0)
-    {
-        acceleration_.y = -deceleration_.y;
-    }
-}
-
-void Player::CalculateVelocity()
-{
-    if (frame_.x == 0)
-    {
-        velocity_.x = 0;
-    }
-
-    if (frame_.y == 0)
-    {
-        velocity_.y = 0;
-    }
-    const auto v_x = acceleration_.x * 1 + velocity_.x;
-    const auto v_y = acceleration_.y * 1 + velocity_.y;
-    const auto mag = sqrtf(powf(v_x, 2) + powf(v_y, 2));
-    if (mag <= max_velocity_)
-    {
-        velocity_.x = v_x;
-        velocity_.y = v_y;
-    }
-    else
-    {
-        auto angle = atan2f(v_y, v_x);
-        velocity_.x = cos(angle) * max_velocity_;
-        velocity_.y = sin(angle) * max_velocity_;
-    }
-}
-
-void Player::CalculatePosition()
-{
-    position.x = velocity_.x * frame_.x + position.x;
-    position.y = velocity_.y * frame_.y + position.y;
-}
-
-void Player::WriteStats(Graphics* graphics)
+void Player::WriteStats(Graphics* graphics) const
 {
     D2D1_RECT_F rect = { 10, 100, 200, 50 };
     graphics->WriteText(L"pos.x:" + std::to_wstring(position.x), rect);
     rect = { 10, 150, 200, 50 };
     graphics->WriteText(L"pos.y:" + std::to_wstring(position.y), rect);
     rect = { 10, 200, 200, 50 };
-    graphics->WriteText(L"acc.x:" + std::to_wstring(acceleration_.x), rect);
+    graphics->WriteText(L"vel.x:" + std::to_wstring(velocity.x), rect);
     rect = { 10, 250, 200, 50 };
-    graphics->WriteText(L"acc.y:" + std::to_wstring(acceleration_.y), rect);
+    graphics->WriteText(L"vel.y:" + std::to_wstring(velocity.y), rect);
     rect = { 10, 300, 200, 50 };
-    graphics->WriteText(L"vel.x:" + std::to_wstring(velocity_.x), rect);
+    graphics->WriteText(L"acc.x:" + std::to_wstring(net_force.x), rect);
     rect = { 10, 350, 200, 50 };
-    graphics->WriteText(L"vel.y:" + std::to_wstring(velocity_.y), rect);
-    rect = { 10, 400, 200, 50 };
-    graphics->WriteText(L"fra.x:" + std::to_wstring(frame_.x), rect);
-    rect = { 10, 450, 200, 50 };
-    graphics->WriteText(L"fra.y:" + std::to_wstring(frame_.y), rect);
+    graphics->WriteText(L"acc.y:" + std::to_wstring(net_force.y), rect);
 }
 
